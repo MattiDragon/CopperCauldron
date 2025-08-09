@@ -15,9 +15,10 @@ loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		register("copper-cauldron") {
+		register("copper_cauldron") {
 			sourceSet(sourceSets["main"])
 			sourceSet(sourceSets["client"])
+            modFiles.from(files("src/main/generated"))
 		}
 	}
 }

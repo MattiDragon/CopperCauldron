@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "copper-cauldron",
+  "id": "copper_cauldron",
   "version": "${version}",
   "name": "Copper Cauldron",
   "description": "Adds a copper cauldron, used for various recipes",

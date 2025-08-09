@@ -9,5 +9,7 @@ public class CopperCauldronDataGenerator implements DataGeneratorEntrypoint {
         var pack = fabricDataGenerator.createPack();
 
         pack.addProvider(ReadmeDataProvider::new);
+        pack.addProvider(ModelProvider::new);
+        pack.addProvider(RecipeProvider::new);
 	}
 }

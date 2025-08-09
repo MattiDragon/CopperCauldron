@@ -3,6 +3,7 @@
   "package": "dev.mattidragon.coppercauldron.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AbstractCauldronBlockAccess"
   ],
   "injectors": {
     "defaultRequire": 1
