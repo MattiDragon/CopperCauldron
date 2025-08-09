@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "copper-cauldron-datagen",
+  "version": "0",
+  "entrypoints": {
+    "fabric-datagen": [
+      "dev.mattidragon.coppercauldron.datagen.CopperCauldronDataGenerator"
+    ]
+  }
+}
