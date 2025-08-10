@@ -1,10 +1,10 @@
 package dev.mattidragon.coppercauldron;
 
+import dev.mattidragon.coppercauldron.behaviour.CauldronContentType;
 import dev.mattidragon.coppercauldron.registry.ModBlockEntities;
 import dev.mattidragon.coppercauldron.registry.ModBlocks;
 import dev.mattidragon.coppercauldron.registry.ModItems;
 import net.fabricmc.api.ModInitializer;
-
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.item.Items;
@@ -21,6 +21,7 @@ public class CopperCauldron implements ModInitializer {
         ModBlocks.register();
         ModItems.register();
         ModBlockEntities.register();
+        CauldronContentType.register();
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL)
                 .register(entries -> entries.addAfter(Items.CAULDRON, ModItems.COPPER_CAULDRON));
