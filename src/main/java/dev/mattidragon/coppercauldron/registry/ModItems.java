@@ -1,9 +1,6 @@
 package dev.mattidragon.coppercauldron.registry;
 
 import dev.mattidragon.coppercauldron.CopperCauldron;
-import dev.mattidragon.coppercauldron.block.CopperCauldronBlock;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;

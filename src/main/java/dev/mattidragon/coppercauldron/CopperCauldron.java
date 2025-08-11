@@ -1,6 +1,6 @@
 package dev.mattidragon.coppercauldron;
 
-import dev.mattidragon.coppercauldron.behaviour.CauldronContentType;
+import dev.mattidragon.coppercauldron.content.CauldronBrew;
 import dev.mattidragon.coppercauldron.registry.ModBlockEntities;
 import dev.mattidragon.coppercauldron.registry.ModBlocks;
 import dev.mattidragon.coppercauldron.registry.ModItems;
@@ -21,7 +21,7 @@ public class CopperCauldron implements ModInitializer {
         ModBlocks.register();
         ModItems.register();
         ModBlockEntities.register();
-        CauldronContentType.register();
+        CauldronBrew.registerRegistry();
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL)
                 .register(entries -> entries.addAfter(Items.CAULDRON, ModItems.COPPER_CAULDRON));

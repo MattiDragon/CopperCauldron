@@ -1,7 +1,9 @@
 package dev.mattidragon.coppercauldron.datagen;
 
+import dev.mattidragon.coppercauldron.CopperCauldron;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import org.jetbrains.annotations.Nullable;
 
 public class CopperCauldronDataGenerator implements DataGeneratorEntrypoint {
 	@Override
@@ -11,5 +13,11 @@ public class CopperCauldronDataGenerator implements DataGeneratorEntrypoint {
         pack.addProvider(ReadmeDataProvider::new);
         pack.addProvider(ModelProvider::new);
         pack.addProvider(RecipeProvider::new);
+        pack.addProvider(BrewProvider::new);
 	}
+
+    @Override
+    public @Nullable String getEffectiveModId() {
+        return CopperCauldron.MOD_ID;
+    }
 }

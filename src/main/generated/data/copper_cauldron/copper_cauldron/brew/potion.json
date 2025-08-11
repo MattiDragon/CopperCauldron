@@ -1,0 +1,19 @@
+{
+  "components": {
+    "minecraft:potion_contents": {}
+  },
+  "item_form": {
+    "amount_per_item": 27000,
+    "container": "minecraft:glass_bottle",
+    "empty_sound": {
+      "sound_id": "minecraft:item.bottle.empty"
+    },
+    "fill_sound": {
+      "sound_id": "minecraft:item.bottle.fill"
+    },
+    "item": "minecraft:potion"
+  },
+  "visual_form": {
+    "type": "potion"
+  }
+}

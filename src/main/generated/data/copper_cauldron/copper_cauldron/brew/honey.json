@@ -1,0 +1,17 @@
+{
+  "item_form": {
+    "amount_per_item": 20250,
+    "container": "minecraft:glass_bottle",
+    "empty_sound": {
+      "sound_id": "minecraft:item.bottle.empty"
+    },
+    "fill_sound": {
+      "sound_id": "minecraft:item.bottle.fill"
+    },
+    "item": "minecraft:honey_bottle"
+  },
+  "visual_form": {
+    "type": "texture",
+    "id": "minecraft:block/honey_block_bottom"
+  }
+}

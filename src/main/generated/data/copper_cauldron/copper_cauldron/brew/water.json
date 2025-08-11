@@ -1,0 +1,9 @@
+{
+  "fluid_form": {
+    "fluid": "minecraft:water"
+  },
+  "visual_form": {
+    "type": "fluid",
+    "fluid": "minecraft:water"
+  }
+}
