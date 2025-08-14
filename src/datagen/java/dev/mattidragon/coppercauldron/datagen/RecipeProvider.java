@@ -1,8 +1,11 @@
 package dev.mattidragon.coppercauldron.datagen;
 
+import dev.mattidragon.coppercauldron.content.CauldronBrews;
+import dev.mattidragon.coppercauldron.datagen.util.CauldronBrewingRecipeJsonBuilder;
 import dev.mattidragon.coppercauldron.registry.ModBlocks;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.minecraft.data.recipe.RecipeExporter;
 import net.minecraft.data.recipe.RecipeGenerator;
 import net.minecraft.item.Items;
@@ -39,6 +42,12 @@ public class RecipeProvider extends FabricRecipeProvider {
                     .pattern("C C")
                     .pattern("CCC")
                     .criterion("has_copper_ingot", conditionsFromItem(Items.COPPER_INGOT))
+                    .offerTo(exporter);
+
+            CauldronBrewingRecipeJsonBuilder.of(registries.getEntryOrThrow(CauldronBrews.WATER), registries.getEntryOrThrow(CauldronBrews.HONEY))
+                    .amount(FluidConstants.BUCKET, FluidConstants.BUCKET / 4)
+                    .ingredient(2, Items.HONEYCOMB)
+                    .criterion("has_honeycomb", conditionsFromItem(Items.HONEYCOMB))
                     .offerTo(exporter);
         }
     }

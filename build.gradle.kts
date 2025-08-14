@@ -33,7 +33,9 @@ fabricApi {
 
 dependencies {
 	minecraft(libs.minecraft)
-	mappings(libs.fabric.yarn)
+	mappings(variantOf(libs.fabric.yarn) {
+        classifier("v2")
+    })
 	modImplementation(libs.fabric.loader)
 
 	modImplementation(libs.fabric.api)

@@ -26,12 +26,12 @@ public record CauldronContent(RegistryEntry<CauldronBrew> brew, ComponentMap com
 
     public static CauldronContent getEmpty(RegistryWrapper.WrapperLookup registries) {
         var brew = registries.getEntryOrThrow(CauldronBrews.EMPTY);
-        return new CauldronContent(brew, brew.comp_349().components());
+        return new CauldronContent(brew, brew.value().components());
     }
 
     public FluidVariant toFluidVariant() {
         return TO_FLUID_VARIANT_CACHE.computeIfAbsent(this, content -> {
-            var brew = content.brew().comp_349();
+            var brew = content.brew().value();
             if (brew.fluidForm().isPresent()) {
                 var components = ComponentChanges.builder();
                 brew.components().forEach(components::add);
@@ -53,7 +53,7 @@ public record CauldronContent(RegistryEntry<CauldronBrew> brew, ComponentMap com
                     return registries.getOrThrow(CauldronBrew.REGISTRY_KEY)
                             .streamEntries()
                             .filter(entry -> {
-                                var brew = entry.comp_349();
+                                var brew = entry.value();
 
                                 if (brew.fluidForm().isEmpty()) return false;
                                 var fluid = brew.fluidForm().get().fluid();

@@ -1,11 +1,4 @@
 {
-  "fluid_form": {
-    "fluid": "minecraft:empty"
-  },
-  "item_form": {
-    "amount_per_item": 0,
-    "item": "minecraft:air"
-  },
   "visual_form": {
     "type": "empty"
   }

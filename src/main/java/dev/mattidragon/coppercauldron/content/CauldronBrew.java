@@ -47,7 +47,7 @@ public record CauldronBrew(
         return registries.getOrThrow(CauldronBrew.REGISTRY_KEY)
                 .streamEntries()
                 .filter(entry -> {
-                    var brew = entry.comp_349();
+                    var brew = entry.value();
 
                     if (brew.itemForm().isEmpty()) return false;
                     var itemForm = brew.itemForm().get();

@@ -3,49 +3,91 @@ package dev.mattidragon.coppercauldron.block.entity;
 import dev.mattidragon.coppercauldron.content.CauldronBrew;
 import dev.mattidragon.coppercauldron.content.CauldronBrews;
 import dev.mattidragon.coppercauldron.content.CauldronContent;
+import dev.mattidragon.coppercauldron.recipe.CauldronRecipeContent;
 import dev.mattidragon.coppercauldron.registry.ModBlockEntities;
+import dev.mattidragon.coppercauldron.registry.ModRecipes;
 import dev.mattidragon.coppercauldron.storage.CauldronContentStorage;
 import dev.mattidragon.coppercauldron.storage.CauldronFluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedSlottedStorage;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.component.Component;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.Inventories;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.storage.ReadView;
 import net.minecraft.storage.WriteView;
 import net.minecraft.util.Hand;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 public class CopperCauldronBlockEntity extends BlockEntity {
     private int heat = 0;
     private CauldronContent content;
     private long amount;
+    private final DefaultedList<ItemStack> items = DefaultedList.ofSize(4, ItemStack.EMPTY);
 
     private final CauldronFluidStorage fluidStorage;
+    private final CombinedSlottedStorage<ItemVariant, ? extends SingleStackStorage> itemStorage;
 
     public CopperCauldronBlockEntity(BlockPos blockPos, BlockState blockState) {
         super(ModBlockEntities.COPPER_CAULDRON, blockPos, blockState);
         var contentStorage = new CauldronContentStorage(this);
         fluidStorage = new CauldronFluidStorage(contentStorage, this::getRegistryManager);
+        itemStorage = new CombinedSlottedStorage<>(
+                IntStream.range(0, items.size())
+                        .mapToObj(i -> new SingleStackStorage() {
+                            @Override
+                            protected ItemStack getStack() {
+                                return items.get(i);
+                            }
+
+                            @Override
+                            protected void setStack(ItemStack stack) {
+                                items.set(i, stack);
+                            }
+
+                            @Override
+                            protected void onFinalCommit() {
+                                markDirty();
+                            }
+                        })
+                        .toList()
+        );
+
     }
 
     static {
         FluidStorage.SIDED.registerForBlockEntity((entity, direction) -> entity.fluidStorage, ModBlockEntities.COPPER_CAULDRON);
+        ItemStorage.SIDED.registerForBlockEntity((entity, direction) -> entity.itemStorage, ModBlockEntities.COPPER_CAULDRON);
     }
 
     @Override
@@ -66,6 +108,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         heat = readView.getInt("heat", 0);
         content = readView.read("content", CauldronContent.CODEC).orElseGet(() -> CauldronContent.getEmpty(registries));
         amount = readView.getLong("amount", 0);
+        Inventories.readData(readView, items);
 
         // Ensure sane state
         if (amount == 0) {
@@ -80,6 +123,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         writeView.putInt("heat", heat);
         writeView.put("content", CauldronContent.CODEC, content);
         writeView.putLong("amount", amount);
+        Inventories.writeData(writeView, items);
     }
 
     @Override
@@ -112,12 +156,18 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         this.content = content;
         this.amount = amount;
         markDirty();
+        updateListeners();
+    }
+
+    private void updateListeners() {
+        Objects.requireNonNull(getWorld(), "World may not be null")
+                .updateListeners(this.getPos(), this.getCachedState(), this.getCachedState(), Block.NOTIFY_ALL);
     }
 
     public boolean extractWithContainer(PlayerEntity player, Hand hand) {
         var handStack = player.getStackInHand(hand);
 
-        var brew = content.brew().comp_349();
+        var brew = content.brew().value();
         if (brew.itemForm().isEmpty()) return false;
 
         var itemForm = brew.itemForm().get();
@@ -155,12 +205,12 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         if (brew == null) return false;
 
         var components = ComponentMap.builder();
-        for (var component : brew.comp_349().components()) {
+        for (var component : brew.value().components()) {
             copyComponent(component, handStack.getComponents(), components);
         }
 
         var content = new CauldronContent(brew, components.build());
-        var itemForm = brew.comp_349().itemForm().orElseThrow();
+        var itemForm = brew.value().itemForm().orElseThrow();
         var toInsert = itemForm.amountPerItem();
         if (amount + toInsert > FluidConstants.BUCKET) {
             return false; // Can't insert more than 1 bucket
@@ -173,7 +223,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         this.amount += toInsert;
 
         var remainder = handStack.get(DataComponentTypes.USE_REMAINDER);
-        var remainderStack = remainder != null ? remainder.comp_3093() : handStack.getRecipeRemainder();
+        var remainderStack = remainder != null ? remainder.convertInto() : handStack.getRecipeRemainder();
 
         handStack.decrement(1);
         if (!remainderStack.isEmpty()) {
@@ -191,14 +241,71 @@ public class CopperCauldronBlockEntity extends BlockEntity {
     }
 
     public boolean insertItems(PlayerEntity player, Hand hand) {
+        var handStorage = ContainerItemContext.ofPlayerHand(player, hand).getMainSlot();
+
+        var moved = StorageUtil.move(handStorage, itemStorage, v -> true, Long.MAX_VALUE, null);
+        if (moved > 0) {
+            markDirty();
+            updateListeners();
+            player.getWorld().playSound(null, getPos(), SoundEvents.BLOCK_DECORATED_POT_INSERT, SoundCategory.PLAYERS);
+            return true;
+        }
+
         return false;
     }
 
+    public boolean extractItems(PlayerEntity player) {
+        var playerStorage = PlayerInventoryStorage.of(player);
+
+        var slot = -1;
+        for (int i = 0; i < items.size(); i++) {
+            if (!items.get(i).isEmpty()) {
+                slot = i;
+                break;
+            }
+        }
+        if (slot == -1) return false;
+
+        var moved = StorageUtil.move(itemStorage.getSlot(slot), playerStorage, v -> true, Long.MAX_VALUE, null);
+        if (moved > 0) {
+            markDirty();
+            updateListeners();
+            player.getWorld().playSound(null, getPos(), SoundEvents.BLOCK_DECORATED_POT_INSERT_FAIL, SoundCategory.PLAYERS);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static void tick(World world, BlockPos pos, BlockState blockState, CopperCauldronBlockEntity entity) {
+        entity.tryCraft();
+    }
+
+    private void tryCraft() {
+        if (!(world instanceof ServerWorld serverWorld)) return;
+
+        var input = new CauldronRecipeContent(content, amount, getItems());
+        serverWorld.getRecipeManager().getFirstMatch(ModRecipes.CAULDRON_RECIPE_TYPE, input, serverWorld)
+                .ifPresent(recipe -> {
+                    var output = recipe.value().apply(input, serverWorld.getRegistryManager());
+                    var amount = output.content().brew().matchesKey(CauldronBrews.EMPTY) ? 0 : output.amount();
+                    setContent(output.content(), amount);
+                    items.clear();
+                    for (var i = 0; i < output.items().size(); i++) {
+                        items.set(i, output.items().get(i));
+                    }
+                });
+    }
+
     private <T> void copyComponent(Component<T> component, ComponentMap stackComponents, ComponentMap.Builder contentComponents) {
-        contentComponents.add(component.comp_2443(), stackComponents.getOrDefault(component.comp_2443(), component.comp_2444()));
+        contentComponents.add(component.type(), stackComponents.getOrDefault(component.type(), component.value()));
     }
 
     private DynamicRegistryManager getRegistryManager() {
         return Objects.requireNonNull(world, "World should exist for registries").getRegistryManager();
+    }
+
+    public List<ItemStack> getItems() {
+        return Collections.unmodifiableList(items);
     }
 }

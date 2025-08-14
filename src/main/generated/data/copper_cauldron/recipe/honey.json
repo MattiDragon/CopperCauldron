@@ -1,0 +1,13 @@
+{
+  "type": "copper_cauldron:cauldron_brewing",
+  "ingredients": [
+    {
+      "count": 2,
+      "ingredient": "minecraft:honeycomb"
+    }
+  ],
+  "input_amount": 81000,
+  "input_brew": "copper_cauldron:water",
+  "output_amount": 20250,
+  "output_brew": "copper_cauldron:honey"
+}
