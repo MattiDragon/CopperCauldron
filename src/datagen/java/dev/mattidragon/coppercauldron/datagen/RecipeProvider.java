@@ -47,6 +47,7 @@ public class RecipeProvider extends FabricRecipeProvider {
             CauldronBrewingRecipeJsonBuilder.of(registries.getEntryOrThrow(CauldronBrews.WATER), registries.getEntryOrThrow(CauldronBrews.HONEY))
                     .amount(FluidConstants.BUCKET, FluidConstants.BUCKET / 4)
                     .ingredient(2, Items.HONEYCOMB)
+                    .heatRange(2, 10)
                     .criterion("has_honeycomb", conditionsFromItem(Items.HONEYCOMB))
                     .offerTo(exporter);
         }

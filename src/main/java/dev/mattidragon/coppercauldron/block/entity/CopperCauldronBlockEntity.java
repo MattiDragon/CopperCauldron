@@ -6,6 +6,7 @@ import dev.mattidragon.coppercauldron.content.CauldronContent;
 import dev.mattidragon.coppercauldron.recipe.CauldronRecipeContent;
 import dev.mattidragon.coppercauldron.registry.ModBlockEntities;
 import dev.mattidragon.coppercauldron.registry.ModRecipes;
+import dev.mattidragon.coppercauldron.registry.ModTags;
 import dev.mattidragon.coppercauldron.storage.CauldronContentStorage;
 import dev.mattidragon.coppercauldron.storage.CauldronFluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
@@ -16,6 +17,7 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
+import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedSlottedStorage;
@@ -32,7 +34,10 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
+import net.minecraft.recipe.Recipe;
 import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -42,6 +47,8 @@ import net.minecraft.storage.WriteView;
 import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 import java.util.Collections;
@@ -50,13 +57,18 @@ import java.util.Objects;
 import java.util.stream.IntStream;
 
 public class CopperCauldronBlockEntity extends BlockEntity {
-    private int heat = 0;
+    private int cauldronHeat = 0;
+    private double contentHeat = 0;
+
     private CauldronContent content;
     private long amount;
     private final DefaultedList<ItemStack> items = DefaultedList.ofSize(4, ItemStack.EMPTY);
 
     private final CauldronFluidStorage fluidStorage;
-    private final CombinedSlottedStorage<ItemVariant, ? extends SingleStackStorage> itemStorage;
+    private final SlottedStorage<ItemVariant> itemStorage;
+
+    private RegistryKey<Recipe<?>> processingRecipe;
+    private int processingProgress = 0;
 
     public CopperCauldronBlockEntity(BlockPos blockPos, BlockState blockState) {
         super(ModBlockEntities.COPPER_CAULDRON, blockPos, blockState);
@@ -82,7 +94,6 @@ public class CopperCauldronBlockEntity extends BlockEntity {
                         })
                         .toList()
         );
-
     }
 
     static {
@@ -105,7 +116,11 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         @SuppressWarnings("deprecation")
         var registries = readView.getRegistries();
 
-        heat = readView.getInt("heat", 0);
+        cauldronHeat = readView.getInt("cauldron_heat", 0);
+        contentHeat = readView.getDouble("content_heat", 0);
+        processingProgress = readView.getInt("processing_progress", 0);
+        processingRecipe = readView.read("processing_recipe", RegistryKey.createCodec(RegistryKeys.RECIPE)).orElse(null);
+
         content = readView.read("content", CauldronContent.CODEC).orElseGet(() -> CauldronContent.getEmpty(registries));
         amount = readView.getLong("amount", 0);
         Inventories.readData(readView, items);
@@ -120,7 +135,12 @@ public class CopperCauldronBlockEntity extends BlockEntity {
 
     @Override
     protected void writeData(WriteView writeView) {
-        writeView.putInt("heat", heat);
+        writeView.putInt("cauldron_heat", cauldronHeat);
+        writeView.putDouble("content_heat", contentHeat);
+        writeView.putInt("processing_progress", processingProgress);
+        if (processingRecipe != null) {
+            writeView.put("processing_recipe", RegistryKey.createCodec(RegistryKeys.RECIPE), processingRecipe);
+        }
         writeView.put("content", CauldronContent.CODEC, content);
         writeView.putLong("amount", amount);
         Inventories.writeData(writeView, items);
@@ -136,8 +156,63 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         }
     }
 
-    public int heat() {
-        return heat;
+    public void updateCauldronHeat() {
+        var world = Objects.requireNonNull(getWorld(), "World may not be null");
+
+        var cauldronHeat = 0;
+
+        var biomeTemperature = world.getBiome(pos).value().getTemperature();
+        if (biomeTemperature < 0.5) {
+            cauldronHeat = -1; // Cold biome
+        } else if (biomeTemperature > 0.8) {
+            cauldronHeat = 1; // Hot biome
+        }
+
+        for (var dir : Direction.values()) {
+            var blockPos = pos.offset(dir);
+            var block = world.getBlockState(blockPos);
+
+            if (block.isIn(ModTags.BlockTags.TEMPERATURE_VERY_HOT)) {
+                cauldronHeat += 10; // Very hot block
+            } else if (block.isIn(ModTags.BlockTags.TEMPERATURE_HOT)) {
+                cauldronHeat += 5; // Hot block
+            } else if (block.isIn(ModTags.BlockTags.TEMPERATURE_COLD)) {
+                cauldronHeat -= 5; // Cold block
+            } else if (block.isIn(ModTags.BlockTags.TEMPERATURE_VERY_COLD)) {
+                cauldronHeat -= 10; // Very cold block
+            }
+        }
+
+        if (cauldronHeat != this.cauldronHeat) {
+            this.cauldronHeat = cauldronHeat;
+            markDirty();
+        }
+    }
+
+    private void updateContentHeat() {
+        var difference = cauldronHeat - contentHeat;
+        if (difference == 0) return;
+        var change = Math.max(Math.abs(difference / 50), 0.1) * Math.signum(difference);
+        change = MathHelper.clamp(change, -Math.abs(difference), Math.abs(difference));
+        contentHeat += change;
+    }
+
+    public double contentHeat() {
+        return contentHeat;
+    }
+
+    public double processingAmount() {
+        return processingProgress;
+    }
+
+    public void setContentValues(double contentHeat) {
+        this.contentHeat = contentHeat;
+        markDirty();
+    }
+
+    public void diluteContentValues(double factor) {
+        contentHeat *= factor;
+        markDirty();
     }
 
     public CauldronContent content() {
@@ -220,7 +295,9 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         }
 
         this.content = content;
+        var oldAmount = this.amount;
         this.amount += toInsert;
+        diluteContentValues((double) oldAmount / this.amount);
 
         var remainder = handStack.get(DataComponentTypes.USE_REMAINDER);
         var remainderStack = remainder != null ? remainder.convertInto() : handStack.getRecipeRemainder();
@@ -279,21 +356,36 @@ public class CopperCauldronBlockEntity extends BlockEntity {
 
     public static void tick(World world, BlockPos pos, BlockState blockState, CopperCauldronBlockEntity entity) {
         entity.tryCraft();
+        entity.updateContentHeat();
+        if (entity.processingRecipe != null) {
+            entity.processingProgress += 1;
+        }
     }
 
     private void tryCraft() {
         if (!(world instanceof ServerWorld serverWorld)) return;
 
-        var input = new CauldronRecipeContent(content, amount, getItems());
+        var input = new CauldronRecipeContent(content, amount, getItems(), contentHeat);
         serverWorld.getRecipeManager().getFirstMatch(ModRecipes.CAULDRON_RECIPE_TYPE, input, serverWorld)
-                .ifPresent(recipe -> {
+                .ifPresentOrElse(recipe -> {
+                    if (!recipe.id().equals(processingRecipe)) {
+                        processingRecipe = recipe.id();
+                        processingProgress = 0;
+                        return;
+                    }
+                    if (processingProgress < recipe.value().processingTime()) return;
+
                     var output = recipe.value().apply(input, serverWorld.getRegistryManager());
                     var amount = output.content().brew().matchesKey(CauldronBrews.EMPTY) ? 0 : output.amount();
                     setContent(output.content(), amount);
+                    setContentValues(output.heat());
                     items.clear();
                     for (var i = 0; i < output.items().size(); i++) {
                         items.set(i, output.items().get(i));
                     }
+                }, () -> {
+                    processingRecipe = null;
+                    processingProgress = 0;
                 });
     }
 

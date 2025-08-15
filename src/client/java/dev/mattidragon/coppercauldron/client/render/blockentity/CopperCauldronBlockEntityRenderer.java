@@ -66,6 +66,7 @@ public class CopperCauldronBlockEntityRenderer implements BlockEntityRenderer<Co
                 sprite = atlas.apply(textureVisual.id());
             }
         }
+        if (sprite == null) return;
 
         var level = MathHelper.lerp((float) blockEntity.amount() / FluidConstants.BUCKET, 5f, 15f);
 

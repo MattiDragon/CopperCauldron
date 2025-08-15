@@ -10,7 +10,12 @@ import net.minecraft.registry.entry.RegistryEntry;
 import java.util.List;
 import java.util.Objects;
 
-public record CauldronRecipeContent(CauldronContent content, long amount, List<ItemStack> items) implements RecipeInput {
+public record CauldronRecipeContent(
+        CauldronContent content,
+        long amount,
+        List<ItemStack> items,
+        double heat
+) implements RecipeInput {
     @Override
     public ItemStack getStackInSlot(int i) {
         return items.get(i);

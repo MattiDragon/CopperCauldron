@@ -35,6 +35,11 @@ public class CauldronBrewingRecipeJsonBuilder {
     private final List<SizedIngredient> ingredients = new ArrayList<>();
     private final Set<ComponentType<?>> copiedComponents = new HashSet<>();
 
+    private int minHeat = 0;
+    private int maxHeat = Integer.MAX_VALUE;
+    private boolean heatSet = false;
+    private int processingAmount = 40;
+
     private CauldronBrewingRecipeJsonBuilder(RegistryEntry<CauldronBrew> inputBrew, RegistryEntry<CauldronBrew> outputBrew) {
         this.inputBrew = inputBrew;
         this.outputBrew = outputBrew;
@@ -82,6 +87,44 @@ public class CauldronBrewingRecipeJsonBuilder {
         return this;
     }
 
+    public CauldronBrewingRecipeJsonBuilder processingTime(int processingAmount) {
+        if (processingAmount < 1) {
+            throw new IllegalArgumentException("Processing amount must be greater than zero");
+        }
+        this.processingAmount = processingAmount;
+        return this;
+    }
+
+    public CauldronBrewingRecipeJsonBuilder minHeat(int minHeat) {
+        if (heatSet) {
+            throw new IllegalStateException("Heat range has already been set");
+        }
+        this.minHeat = minHeat;
+        this.maxHeat = Integer.MAX_VALUE;
+        this.heatSet = true;
+        return this;
+    }
+
+    public CauldronBrewingRecipeJsonBuilder maxHeat(int maxHeat) {
+        if (heatSet) {
+            throw new IllegalStateException("Heat range has already been set");
+        }
+        this.minHeat = Integer.MIN_VALUE;
+        this.maxHeat = maxHeat;
+        this.heatSet = true;
+        return this;
+    }
+
+    public CauldronBrewingRecipeJsonBuilder heatRange(int minHeat, int maxHeat) {
+        if (heatSet) {
+            throw new IllegalStateException("Heat range has already been set");
+        }
+        this.minHeat = minHeat;
+        this.maxHeat = maxHeat;
+        this.heatSet = true;
+        return this;
+    }
+
     public <T> CauldronBrewingRecipeJsonBuilder requireComponent(ComponentType<T> type, T value) {
         componentFilter.add(type, value);
         return this;
@@ -104,6 +147,10 @@ public class CauldronBrewingRecipeJsonBuilder {
                 .criteriaMerger(AdvancementRequirements.CriterionMerger.OR);
         criteria.forEach(advancementBuilder::criterion);
 
+        if (minHeat > maxHeat) {
+            throw new IllegalArgumentException("Minimum heat cannot be greater than maximum heat");
+        }
+
         var recipe = new CauldronBrewingRecipe(
                 inputBrew,
                 inputAmount,
@@ -112,7 +159,10 @@ public class CauldronBrewingRecipeJsonBuilder {
                 outputAmount,
                 outputComponents.build(),
                 copiedComponents,
-                ingredients
+                ingredients,
+                minHeat,
+                maxHeat,
+                processingAmount
         );
 
         exporter.accept(registryKey, recipe, advancementBuilder.build(registryKey.getValue().withPrefixedPath("recipes/cauldron_brewing/")));

@@ -29,4 +29,6 @@ public interface CauldronRecipe extends Recipe<CauldronRecipeContent> {
     default RecipeBookCategory getRecipeBookCategory() {
         return ModRecipes.CAULDRON_CATEGORY;
     }
+
+    int processingTime();
 }

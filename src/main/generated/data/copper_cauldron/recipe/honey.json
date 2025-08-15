@@ -8,6 +8,9 @@
   ],
   "input_amount": 81000,
   "input_brew": "copper_cauldron:water",
+  "max_heat": 10,
+  "min_heat": 2,
   "output_amount": 20250,
-  "output_brew": "copper_cauldron:honey"
+  "output_brew": "copper_cauldron:honey",
+  "processing_time": 40
 }

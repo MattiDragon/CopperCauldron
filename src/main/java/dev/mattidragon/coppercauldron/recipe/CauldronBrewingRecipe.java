@@ -37,7 +37,10 @@ public record CauldronBrewingRecipe(
         long outputAmount,
         ComponentChanges outputComponents,
         Set<ComponentType<?>> copiedComponents,
-        List<SizedIngredient> ingredients
+        List<SizedIngredient> ingredients,
+        int minHeat,
+        int maxHeat,
+        int processingTime
 ) implements CauldronRecipe {
     private static final MapCodec<CauldronBrewingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             RegistryFixedCodec.of(CauldronBrew.REGISTRY_KEY).fieldOf("input_brew").forGetter(CauldronBrewingRecipe::inputBrew),
@@ -64,7 +67,12 @@ public record CauldronBrewingRecipe(
                             copiedComponents -> copiedComponents.isEmpty() ? Optional.empty() : Optional.of(copiedComponents)
                     )
                     .forGetter(CauldronBrewingRecipe::copiedComponents),
-            SizedIngredient.CODEC.listOf().fieldOf("ingredients").forGetter(CauldronBrewingRecipe::ingredients)
+            SizedIngredient.CODEC.listOf().fieldOf("ingredients").forGetter(CauldronBrewingRecipe::ingredients),
+            Codec.INT.fieldOf("min_heat").orElse(0).forGetter(CauldronBrewingRecipe::minHeat),
+            Codec.INT.optionalFieldOf("max_heat")
+                    .xmap(o -> o.orElse(Integer.MAX_VALUE), i -> i == Integer.MAX_VALUE ? Optional.empty() : Optional.of(i))
+                    .forGetter(CauldronBrewingRecipe::maxHeat),
+            Codec.INT.fieldOf("processing_time").orElse(40).forGetter(CauldronBrewingRecipe::processingTime)
     ).apply(instance, CauldronBrewingRecipe::new));
 
     private static final PacketCodec<RegistryByteBuf, CauldronBrewingRecipe> PACKET_CODEC = PacketCodec.tuple(
@@ -76,11 +84,15 @@ public record CauldronBrewingRecipe(
             ComponentChanges.PACKET_CODEC, CauldronBrewingRecipe::outputComponents,
             PacketCodecs.registryValue(RegistryKeys.DATA_COMPONENT_TYPE).collect(PacketCodecs.toCollection(HashSet::new)), CauldronBrewingRecipe::copiedComponents,
             SizedIngredient.PACKET_CODEC.collect(PacketCodecs.toList()), CauldronBrewingRecipe::ingredients,
+            PacketCodecs.INTEGER, CauldronBrewingRecipe::minHeat,
+            PacketCodecs.INTEGER, CauldronBrewingRecipe::maxHeat,
+            PacketCodecs.INTEGER, CauldronBrewingRecipe::processingTime,
             CauldronBrewingRecipe::new
     );
 
     @Override
     public boolean matches(CauldronRecipeContent input, World world) {
+        if (input.heat() < minHeat || input.heat() > maxHeat) return false;
         if (!input.hasContent(inputBrew, componentFilter)) return false;
 
         var numCrafts = input.amount() / inputAmount;
@@ -120,7 +132,8 @@ public record CauldronBrewingRecipe(
                 outputAmount * numCrafts,
                 outputItems.stream()
                         .filter(Predicate.not(ItemStack::isEmpty))
-                        .toList()
+                        .toList(),
+                input.heat()
         );
     }
 
@@ -165,6 +178,7 @@ public record CauldronBrewingRecipe(
         }
 
         @Override
+        @Deprecated
         public PacketCodec<RegistryByteBuf, CauldronBrewingRecipe> packetCodec() {
             return PACKET_CODEC;
         }

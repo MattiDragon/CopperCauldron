@@ -26,9 +26,15 @@ public class CauldronContentStorage extends SnapshotParticipant<CauldronContentS
             return 0;
         }
 
+        var amount = getAmount();
+        var inserted = Math.min(maxAmount, getCapacity() - amount);
+        if (inserted == 0) {
+            return 0;
+        }
+
         updateSnapshots(transaction);
-        long inserted = Math.min(maxAmount, getCapacity() - getAmount());
-        entity.setContent(content, getAmount() + inserted);
+        entity.setContent(content, amount + inserted);
+        entity.diluteContentValues((double) amount / (amount + inserted));
 
         return inserted;
     }
@@ -45,9 +51,12 @@ public class CauldronContentStorage extends SnapshotParticipant<CauldronContentS
         var world = entity.getWorld();
         if (world == null) return 0;
 
-        updateSnapshots(transaction);
-        long extracted = Math.min(maxAmount, getAmount());
+        var extracted = Math.min(maxAmount, getAmount());
+        if (extracted == 0) {
+            return 0;
+        }
 
+        updateSnapshots(transaction);
         var newContent = extracted == getAmount() ? CauldronContent.getEmpty(world.getRegistryManager()) : content;
         entity.setContent(newContent, getAmount() - extracted);
 
@@ -76,12 +85,13 @@ public class CauldronContentStorage extends SnapshotParticipant<CauldronContentS
 
     @Override
     protected Snapshot createSnapshot() {
-        return new Snapshot(entity.content(), entity.amount());
+        return new Snapshot(entity.content(), entity.amount(), entity.contentHeat(), entity.processingAmount());
     }
 
     @Override
     protected void readSnapshot(Snapshot snapshot) {
         entity.setContent(snapshot.content, snapshot.amount);
+        entity.setContentValues(snapshot.contentHeat);
     }
 
     @Override
@@ -89,6 +99,6 @@ public class CauldronContentStorage extends SnapshotParticipant<CauldronContentS
         entity.markDirty();
     }
 
-    protected record Snapshot(CauldronContent content, long amount) {
+    protected record Snapshot(CauldronContent content, long amount, double contentHeat, double processingAmount) {
     }
 }

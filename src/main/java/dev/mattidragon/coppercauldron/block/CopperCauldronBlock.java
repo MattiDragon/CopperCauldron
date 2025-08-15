@@ -5,6 +5,7 @@ import dev.mattidragon.coppercauldron.block.entity.CopperCauldronBlockEntity;
 import dev.mattidragon.coppercauldron.mixin.AbstractCauldronBlockAccess;
 import dev.mattidragon.coppercauldron.registry.ModBlockEntities;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorageUtil;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.ShapeContext;
@@ -20,6 +21,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.block.WireOrientation;
 import org.jetbrains.annotations.Nullable;
 
 public class CopperCauldronBlock extends BlockWithEntity {
@@ -58,6 +60,12 @@ public class CopperCauldronBlock extends BlockWithEntity {
         } else {
             return ActionResult.FAIL;
         }
+    }
+
+    @Override
+    protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation wireOrientation, boolean notify) {
+        if (!(world.getBlockEntity(pos)instanceof CopperCauldronBlockEntity blockEntity)) return;
+        blockEntity.updateCauldronHeat();
     }
 
     @Override

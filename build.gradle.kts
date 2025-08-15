@@ -58,6 +58,8 @@ tasks.processResources {
 
 tasks.withType<JavaCompile>().configureEach {
 	options.release = 21
+    // Enable details for deprecation warnings
+    options.isDeprecation = true
 }
 
 java {
