@@ -36,7 +36,7 @@ public class CopperCauldronBlockEntityRenderer implements BlockEntityRenderer<Co
     @Override
     public void render(CopperCauldronBlockEntity blockEntity, float tickProgress, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, Vec3d cameraPos) {
         renderContent(blockEntity, matrices, vertexConsumers, light, overlay);
-        renderItems(blockEntity, matrices, vertexConsumers, light, overlay);
+        renderItems(blockEntity, matrices, vertexConsumers, light, overlay, tickProgress);
     }
 
     private void renderContent(CopperCauldronBlockEntity blockEntity, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
@@ -94,13 +94,13 @@ public class CopperCauldronBlockEntityRenderer implements BlockEntityRenderer<Co
         matrices.pop();
     }
 
-    private void renderItems(CopperCauldronBlockEntity blockEntity, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        var level = MathHelper.lerp((float) blockEntity.amount() / FluidConstants.BUCKET, 5f, 15f) - 2f;
+    private void renderItems(CopperCauldronBlockEntity blockEntity, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, float tickProgress) {
+        var level = MathHelper.lerp((float) blockEntity.amount() / FluidConstants.BUCKET, 5f, 15f) - .8f;
         var random = new Random();
 
         matrices.push();
         matrices.translate(0.5f, level / 16f, 0.5f);
-        matrices.scale(0.75f, 0.75f, 0.75f);
+        matrices.scale(0.6f, 0.6f, 0.6f);
 
         var nonEmpty = (int) blockEntity.getItems().stream().filter(Predicate.not(ItemStack::isEmpty)).count();
         var angle = (float) Math.PI * 2 / nonEmpty;
@@ -116,8 +116,8 @@ public class CopperCauldronBlockEntityRenderer implements BlockEntityRenderer<Co
             var seed = blockEntity.getPos().asLong() + itemIndex;
             random.setSeed(seed | ((long) seed) << 32);
             matrices.translate(0.1f * (random.nextFloat() - 0.5f), 0, 0.1f * (random.nextFloat() - 0.5f));
-            matrices.multiply(RotationAxis.POSITIVE_X.rotation(random.nextFloat() * 0.2f * (float) Math.PI), 0, 0.2f, 0);
-            matrices.multiply(RotationAxis.POSITIVE_Z.rotation(random.nextFloat() * 0.2f * (float) Math.PI), 0, 0.2f, 0);
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotation((float) Math.PI * 2 * random.nextFloat()), 0, 0.2f, 0);
+            matrices.multiply(RotationAxis.POSITIVE_X.rotation((float) Math.PI / 2f + (random.nextFloat() - 0.5f) * 0.2f * (float) Math.PI), 0, 0.1f, 0);
 
             itemRenderer.renderItem(item, ItemDisplayContext.GROUND, light, overlay, matrices, vertexConsumers, blockEntity.getWorld(), Long.hashCode(seed));
             matrices.pop();
