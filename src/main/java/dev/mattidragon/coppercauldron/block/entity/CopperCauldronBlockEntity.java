@@ -230,13 +230,17 @@ public class CopperCauldronBlockEntity extends BlockEntity {
     public void setContent(CauldronContent content, long amount) {
         this.content = content;
         this.amount = amount;
-        markDirty();
         updateListeners();
+    }
+
+    public boolean isCooking() {
+        return processingProgress > 0;
     }
 
     private void updateListeners() {
         Objects.requireNonNull(getWorld(), "World may not be null")
                 .updateListeners(this.getPos(), this.getCachedState(), this.getCachedState(), Block.NOTIFY_ALL);
+        markDirty();
     }
 
     public boolean extractWithContainer(PlayerEntity player, Hand hand) {
@@ -322,7 +326,6 @@ public class CopperCauldronBlockEntity extends BlockEntity {
 
         var moved = StorageUtil.move(handStorage, itemStorage, v -> true, Long.MAX_VALUE, null);
         if (moved > 0) {
-            markDirty();
             updateListeners();
             player.getWorld().playSound(null, getPos(), SoundEvents.BLOCK_DECORATED_POT_INSERT, SoundCategory.PLAYERS);
             return true;
@@ -345,7 +348,6 @@ public class CopperCauldronBlockEntity extends BlockEntity {
 
         var moved = StorageUtil.move(itemStorage.getSlot(slot), playerStorage, v -> true, Long.MAX_VALUE, null);
         if (moved > 0) {
-            markDirty();
             updateListeners();
             player.getWorld().playSound(null, getPos(), SoundEvents.BLOCK_DECORATED_POT_INSERT_FAIL, SoundCategory.PLAYERS);
             return true;
@@ -359,6 +361,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         entity.updateContentHeat();
         if (entity.processingRecipe != null) {
             entity.processingProgress += 1;
+            entity.updateListeners();
         }
     }
 
@@ -371,6 +374,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
                     if (!recipe.id().equals(processingRecipe)) {
                         processingRecipe = recipe.id();
                         processingProgress = 0;
+                        updateListeners();
                         return;
                     }
                     if (processingProgress < recipe.value().processingTime()) return;
@@ -386,6 +390,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
                 }, () -> {
                     processingRecipe = null;
                     processingProgress = 0;
+                    updateListeners();
                 });
     }
 
