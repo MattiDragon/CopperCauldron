@@ -16,5 +16,5 @@
   "min_heat": 2,
   "output_amount": 81000,
   "output_brew": "copper_cauldron:mushroom_stew",
-  "processing_time": 40
+  "processing_time": 80
 }

@@ -71,7 +71,7 @@ public record CauldronBrewingRecipe(
             Codec.INT.optionalFieldOf("max_heat")
                     .xmap(o -> o.orElse(Integer.MAX_VALUE), i -> i == Integer.MAX_VALUE ? Optional.empty() : Optional.of(i))
                     .forGetter(CauldronBrewingRecipe::maxHeat),
-            Codec.INT.fieldOf("processing_time").orElse(40).forGetter(CauldronBrewingRecipe::processingTime)
+            Codec.INT.fieldOf("processing_time").orElse(80).forGetter(CauldronBrewingRecipe::processingTime)
     ).apply(instance, CauldronBrewingRecipe::new));
 
     private static final PacketCodec<RegistryByteBuf, CauldronBrewingRecipe> PACKET_CODEC = PacketCodec.tuple(

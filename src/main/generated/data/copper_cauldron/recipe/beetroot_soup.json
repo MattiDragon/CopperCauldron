@@ -12,5 +12,5 @@
   "min_heat": 2,
   "output_amount": 81000,
   "output_brew": "copper_cauldron:beetroot_soup",
-  "processing_time": 40
+  "processing_time": 80
 }

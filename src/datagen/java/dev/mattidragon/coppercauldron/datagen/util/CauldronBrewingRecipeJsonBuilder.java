@@ -38,7 +38,7 @@ public class CauldronBrewingRecipeJsonBuilder {
     private int minHeat = 0;
     private int maxHeat = Integer.MAX_VALUE;
     private boolean heatSet = false;
-    private int processingAmount = 40;
+    private int processingAmount = 80;
 
     private CauldronBrewingRecipeJsonBuilder(RegistryEntry<CauldronBrew> inputBrew, RegistryEntry<CauldronBrew> outputBrew) {
         this.inputBrew = inputBrew;
