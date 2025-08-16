@@ -96,7 +96,7 @@ public class CauldronContentStorage extends SnapshotParticipant<CauldronContentS
 
     @Override
     protected void onFinalCommit() {
-        entity.markDirty();
+        entity.updateListeners();
     }
 
     protected record Snapshot(CauldronContent content, long amount, double contentHeat, double processingAmount) {

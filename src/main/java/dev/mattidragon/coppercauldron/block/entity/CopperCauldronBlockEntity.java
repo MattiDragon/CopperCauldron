@@ -89,7 +89,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
 
                             @Override
                             protected void onFinalCommit() {
-                                markDirty();
+                                updateListeners();
                             }
                         })
                         .toList()
@@ -238,7 +238,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         return processingProgress > 0;
     }
 
-    private void updateListeners() {
+    public void updateListeners() {
         Objects.requireNonNull(getWorld(), "World may not be null")
                 .updateListeners(this.getPos(), this.getCachedState(), this.getCachedState(), Block.NOTIFY_ALL);
         markDirty();
