@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_crafting_recipe_brown": {
+      "conditions": {
+        "recipe": "minecraft:rabbit_stew_from_brown_mushroom"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_crafting_recipe_red": {
+      "conditions": {
+        "recipe": "minecraft:rabbit_stew_from_red_mushroom"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "copper_cauldron:rabbit_stew"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_crafting_recipe_red",
+      "has_crafting_recipe_brown"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "copper_cauldron:rabbit_stew"
+    ]
+  }
+}

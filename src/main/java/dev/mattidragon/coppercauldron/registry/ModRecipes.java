@@ -12,7 +12,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public class ModRecipes {
-    public static final RecipeSerializer<CauldronBrewingRecipe> CAULDRON_RECIPE_SERIALIZER = new CauldronBrewingRecipe.Serializer();
+    public static final RecipeSerializer<CauldronBrewingRecipe> CAULDRON_BREWING_SERIALIZER = new CauldronBrewingRecipe.Serializer();
 
     public static final RecipeType<CauldronRecipe> CAULDRON_RECIPE_TYPE = createType(CopperCauldron.id("cauldron_brewing"));
 
@@ -30,7 +30,7 @@ public class ModRecipes {
     public static void register() {
         Registry.register(Registries.RECIPE_TYPE, CopperCauldron.id("cauldron_brewing"), CAULDRON_RECIPE_TYPE);
 
-        Registry.register(Registries.RECIPE_SERIALIZER, CopperCauldron.id("cauldron_brewing"), CAULDRON_RECIPE_SERIALIZER);
+        Registry.register(Registries.RECIPE_SERIALIZER, CopperCauldron.id("cauldron_brewing"), CAULDRON_BREWING_SERIALIZER);
 
         Registry.register(Registries.RECIPE_BOOK_CATEGORY, CopperCauldron.id("cauldron"), CAULDRON_CATEGORY);
     }

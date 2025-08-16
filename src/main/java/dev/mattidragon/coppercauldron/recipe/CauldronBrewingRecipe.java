@@ -17,7 +17,6 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
@@ -163,12 +162,7 @@ public record CauldronBrewingRecipe(
 
     @Override
     public RecipeSerializer<? extends Recipe<CauldronRecipeContent>> getSerializer() {
-        return ModRecipes.CAULDRON_RECIPE_SERIALIZER;
-    }
-
-    @Override
-    public RecipeType<? extends Recipe<CauldronRecipeContent>> getType() {
-        return ModRecipes.CAULDRON_RECIPE_TYPE;
+        return ModRecipes.CAULDRON_BREWING_SERIALIZER;
     }
 
     public static class Serializer implements RecipeSerializer<CauldronBrewingRecipe> {

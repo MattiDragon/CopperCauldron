@@ -1,0 +1,17 @@
+{
+  "item_form": {
+    "amount_per_item": 27000,
+    "container": "minecraft:bowl",
+    "empty_sound": {
+      "sound_id": "minecraft:item.bottle.empty"
+    },
+    "fill_sound": {
+      "sound_id": "minecraft:item.bottle.fill"
+    },
+    "item": "minecraft:mushroom_stew"
+  },
+  "visual_form": {
+    "type": "texture",
+    "id": "copper_cauldron:cauldron_brew/mushroom_stew"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "type": "copper_cauldron:cauldron_brewing",
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": "minecraft:cooked_rabbit"
+    },
+    {
+      "count": 1,
+      "ingredient": "minecraft:baked_potato"
+    },
+    {
+      "count": 1,
+      "ingredient": "minecraft:carrot"
+    },
+    {
+      "count": 1,
+      "ingredient": [
+        "minecraft:red_mushroom",
+        "minecraft:brown_mushroom"
+      ]
+    }
+  ],
+  "input_amount": 81000,
+  "input_brew": "copper_cauldron:water",
+  "max_heat": 20,
+  "min_heat": 2,
+  "output_amount": 81000,
+  "output_brew": "copper_cauldron:rabbit_stew",
+  "processing_time": 40
+}

@@ -1,0 +1,24 @@
+{
+  "type": "copper_cauldron:cauldron_brewing",
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": "minecraft:oxeye_daisy"
+    }
+  ],
+  "input_amount": 81000,
+  "input_brew": "copper_cauldron:mushroom_stew",
+  "max_heat": 20,
+  "min_heat": 2,
+  "output_amount": 81000,
+  "output_brew": "copper_cauldron:suspicious_stew",
+  "output_components": {
+    "minecraft:suspicious_stew_effects": [
+      {
+        "duration": 140,
+        "id": "minecraft:regeneration"
+      }
+    ]
+  },
+  "processing_time": 40
+}

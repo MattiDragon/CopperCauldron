@@ -1,0 +1,20 @@
+{
+  "components": {
+    "minecraft:suspicious_stew_effects": []
+  },
+  "item_form": {
+    "amount_per_item": 27000,
+    "container": "minecraft:bowl",
+    "empty_sound": {
+      "sound_id": "minecraft:item.bottle.empty"
+    },
+    "fill_sound": {
+      "sound_id": "minecraft:item.bottle.fill"
+    },
+    "item": "minecraft:suspicious_stew"
+  },
+  "visual_form": {
+    "type": "texture",
+    "id": "copper_cauldron:cauldron_brew/suspicious_stew"
+  }
+}

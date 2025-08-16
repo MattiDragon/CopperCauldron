@@ -4,6 +4,7 @@ import dev.mattidragon.coppercauldron.registry.ModRecipes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.IngredientPlacement;
 import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.RecipeType;
 import net.minecraft.recipe.book.RecipeBookCategory;
 import net.minecraft.registry.RegistryWrapper;
 
@@ -28,6 +29,11 @@ public interface CauldronRecipe extends Recipe<CauldronRecipeContent> {
     @Override
     default RecipeBookCategory getRecipeBookCategory() {
         return ModRecipes.CAULDRON_CATEGORY;
+    }
+
+    @Override
+    default RecipeType<? extends Recipe<CauldronRecipeContent>> getType() {
+        return ModRecipes.CAULDRON_RECIPE_TYPE;
     }
 
     int processingTime();

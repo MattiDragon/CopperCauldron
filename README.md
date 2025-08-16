@@ -19,10 +19,10 @@ On the surface it's very similar to the vanilla cauldron, but it can do a lot mo
 Currently, copper cauldrons can do the following:
 - Store water, honey and potions
 - Turn honeycomb into honey with water and heat
+- Cook vanilla soups and stews
 
 More features are planned for the future, such as:
 - Brewing potions
-- Cooking soups and stews
 - Various other crafting recipes
 
 ## Other Info

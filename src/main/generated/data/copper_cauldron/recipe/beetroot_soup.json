@@ -1,0 +1,16 @@
+{
+  "type": "copper_cauldron:cauldron_brewing",
+  "ingredients": [
+    {
+      "count": 4,
+      "ingredient": "minecraft:beetroot"
+    }
+  ],
+  "input_amount": 81000,
+  "input_brew": "copper_cauldron:water",
+  "max_heat": 20,
+  "min_heat": 2,
+  "output_amount": 81000,
+  "output_brew": "copper_cauldron:beetroot_soup",
+  "processing_time": 40
+}
