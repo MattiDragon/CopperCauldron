@@ -11,6 +11,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.entry.RegistryFixedCodec;
 
 import java.util.Map;
+import java.util.Objects;
 
 public record CauldronContent(RegistryEntry<CauldronBrew> brew, ComponentMap components) {
     public static final Codec<CauldronContent> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -68,5 +69,20 @@ public record CauldronContent(RegistryEntry<CauldronBrew> brew, ComponentMap com
                             .map(brew -> new CauldronContent(brew, variant.getComponentMap()))
                             .orElse(null);
                 });
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof CauldronContent(var brew2, var components2))) return false;
+
+        if (!brew.equals(brew2)) return false;
+
+        for (var type : brew.value().components().getTypes()) {
+            if (!Objects.equals(components.get(type), components2.get(type))) {
+                return false;
+            }
+        }
+        return true;
     }
 }

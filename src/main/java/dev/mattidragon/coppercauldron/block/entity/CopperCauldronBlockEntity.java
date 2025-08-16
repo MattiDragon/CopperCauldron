@@ -123,6 +123,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
 
         content = readView.read("content", CauldronContent.CODEC).orElseGet(() -> CauldronContent.getEmpty(registries));
         amount = readView.getLong("amount", 0);
+        items.clear();
         Inventories.readData(readView, items);
 
         // Ensure sane state
@@ -270,6 +271,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
             content = CauldronContent.getEmpty(getRegistryManager());
             amount = 0;
         }
+        updateListeners();
 
         itemForm.fillSound().ifPresent(sound ->
                 player.getWorld().playSound(player, player.getX(), player.getEyeY(), player.getZ(), sound, SoundCategory.PLAYERS, 1, 1));
@@ -302,6 +304,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         var oldAmount = this.amount;
         this.amount += toInsert;
         diluteContentValues((double) oldAmount / this.amount);
+        updateListeners();
 
         var remainder = handStack.get(DataComponentTypes.USE_REMAINDER);
         var remainderStack = remainder != null ? remainder.convertInto() : handStack.getRecipeRemainder();
@@ -327,7 +330,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         var moved = StorageUtil.move(handStorage, itemStorage, v -> true, Long.MAX_VALUE, null);
         if (moved > 0) {
             updateListeners();
-            player.getWorld().playSound(null, getPos(), SoundEvents.BLOCK_DECORATED_POT_INSERT, SoundCategory.PLAYERS);
+            player.getWorld().playSound(player, getPos(), SoundEvents.BLOCK_DECORATED_POT_INSERT, SoundCategory.PLAYERS);
             return true;
         }
 
@@ -338,7 +341,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         var playerStorage = PlayerInventoryStorage.of(player);
 
         var slot = -1;
-        for (int i = 0; i < items.size(); i++) {
+        for (var i = items.size() - 1; i >= 0; i--) {
             if (!items.get(i).isEmpty()) {
                 slot = i;
                 break;
@@ -349,7 +352,7 @@ public class CopperCauldronBlockEntity extends BlockEntity {
         var moved = StorageUtil.move(itemStorage.getSlot(slot), playerStorage, v -> true, Long.MAX_VALUE, null);
         if (moved > 0) {
             updateListeners();
-            player.getWorld().playSound(null, getPos(), SoundEvents.BLOCK_DECORATED_POT_INSERT_FAIL, SoundCategory.PLAYERS);
+            player.getWorld().playSound(player, getPos(), SoundEvents.BLOCK_DECORATED_POT_INSERT_FAIL, SoundCategory.PLAYERS);
             return true;
         }
 
@@ -388,9 +391,11 @@ public class CopperCauldronBlockEntity extends BlockEntity {
                         items.set(i, output.items().get(i));
                     }
                 }, () -> {
-                    processingRecipe = null;
-                    processingProgress = 0;
-                    updateListeners();
+                    if (processingRecipe != null) {
+                        processingRecipe = null;
+                        processingProgress = 0;
+                        updateListeners();
+                    }
                 });
     }
 

@@ -78,7 +78,7 @@ public class CopperCauldronBlock extends BlockWithEntity {
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         if (!(world.getBlockEntity(pos)instanceof CopperCauldronBlockEntity blockEntity)) return ActionResult.FAIL;
 
-        if (blockEntity.extractItems(player)) {
+        if (player.getMainHandStack().isEmpty() && blockEntity.extractItems(player)) {
             return ActionResult.CONSUME;
         } else {
             return ActionResult.FAIL;
